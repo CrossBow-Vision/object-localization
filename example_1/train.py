@@ -20,9 +20,9 @@ ALPHA = 1.0
 # 96, 128, 160, 192, 224
 IMAGE_SIZE = 224
 
-EPOCHS = 20
-BATCH_SIZE = 5
-PATIENCE = 5
+EPOCHS = 200
+BATCH_SIZE = 11
+PATIENCE = 50
 
 MULTI_PROCESSING = False
 THREADS = 1
@@ -64,9 +64,8 @@ class DataGenerator(Sequence):
 
         batch_images = np.zeros((len(batch_paths), IMAGE_SIZE, IMAGE_SIZE, 3), dtype=np.float32)
         for i, f in enumerate(batch_paths):
-            img = Image.open(f)
-            batch_images[i] = Rescaling(1./255)(np.array(img, dtype=np.float32))   
-            img.close()
+            img = cv2.imread(f)
+            batch_images[i] = preprocess_input(np.array(img, dtype=np.float32))               
 
         return batch_images, batch_coords
     
@@ -116,7 +115,8 @@ def create_model(trainable=False):
         layer.trainable = trainable
 
     x = model.layers[-1].output
-    x = Conv2D(4, kernel_size=3, name="coords")(x)
+    x = Conv2D(1, kernel_size=3, name="coords")(x)
+    x = MaxPooling2D()(x)
     x = Reshape((4,))(x)
 
     return Model(inputs=model.input, outputs=x)
@@ -126,23 +126,19 @@ def main():
     model.summary()
 
     train_datagen = DataGenerator(ANNOT_DIR)
-#     validation_datagen = Validation(generator=DataGenerator(VALIDATION_CSV))
+    validation_datagen = Validation(generator=DataGenerator(ANNOT_DIR))
 
     model.compile(loss="mean_squared_error", optimizer="adam", metrics=[])
 
-#     checkpoint = ModelCheckpoint("model-{val_iou:.2f}.h5", monitor="val_iou", verbose=1, save_best_only=True,
-#                                  save_weights_only=True, mode="max")
-#     stop = EarlyStopping(monitor="val_iou", patience=PATIENCE, mode="max")
+    checkpoint = ModelCheckpoint("model-{val_iou:.2f}.h5", monitor="val_iou", verbose=1, save_best_only=True,
+                                 save_weights_only=True, mode="max")
+    
+    stop = EarlyStopping(monitor="val_iou", patience=PATIENCE, mode="max")
 
-#     reduce_lr = ReduceLROnPlateau(monitor="val_iou", factor=0.2, patience=10, min_lr=1e-7, verbose=1, mode="max")
+    reduce_lr = ReduceLROnPlateau(monitor="val_iou", factor=0.2, patience=10, min_lr=1e-4, verbose=1, mode="max")
 
-    model.fit_generator(generator=train_datagen,
-                        epochs=EPOCHS,
-#                         callbacks=[validation_datagen, checkpoint, reduce_lr, stop],
-                        workers=THREADS,
-                        use_multiprocessing=MULTI_PROCESSING,
-                        shuffle=False,
-                        verbose=1)
+    model.fit(train_datagen, epochs=EPOCHS, callbacks=[validation_datagen, checkpoint, reduce_lr, stop],
+                        workers=THREADS, use_multiprocessing=MULTI_PROCESSING, shuffle=False, verbose=1)
 
 
 
