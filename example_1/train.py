@@ -33,7 +33,7 @@ class DataGenerator(Sequence):
         self.paths = []
 
         with open(csv_file, "r") as file:
-            self.coords = np.zeros((sum(1 for line in file), 4))
+            self.coords = np.zeros((sum(1 for line in file), 4))      # numpy array of no. of rows * 4 
             file.seek(0)
 
             reader = csv.reader(file, delimiter=",")
