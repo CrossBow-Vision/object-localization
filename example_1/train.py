@@ -33,10 +33,9 @@ VALIDATION_CSV = "validation.csv"
 
 class DataGenerator(Sequence):
     
-    def __init__(self, annotations_dir):           #annotations_path :  "annotations/"
+    def __init__(self, annotations_dir):              # annotations_path :  "annotations/"
         
-        annotations_path = sorted(list(Path(annotations_dir) .glob('**/*.json')))
-        
+        annotations_path = sorted(list(Path(annotations_dir) .glob('**/*.json')))        
         self.paths = []        
         self.coords = np.zeros( len(annotations_path), 4))      # numpy array of no. of rows * 4 
     
@@ -50,7 +49,7 @@ class DataGenerator(Sequence):
             self.coords[index, 2] = data['shapes'][0]["points"][1][0] - data['shapes'][0]["points"][0][0]
             self.coords[index, 3] = data['shapes'][0]["points"][1][1] - data['shapes'][0]["points"][0][1]
 
-           self.paths.append(data["imagePath"][3:])
+            self.paths.append(data["imagePath"][3:])
 
             f.close()
 
@@ -90,13 +89,13 @@ class DataGenerator(Sequence):
         batch_images = np.zeros((len(batch_paths), IMAGE_SIZE, IMAGE_SIZE, 3), dtype=np.float32)
         for i, f in enumerate(batch_paths):
             img = Image.open(f)
-            img = img.resize((IMAGE_SIZE, IMAGE_SIZE))
-            img = img.convert('RGB')
-
             batch_images[i] = preprocess_input(np.array(img, dtype=np.float32))
             img.close()
 
         return batch_images, batch_coords
+    
+    
+    
 
 class Validation(Callback):
     def __init__(self, generator):
