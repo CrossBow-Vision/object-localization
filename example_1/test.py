@@ -2,6 +2,7 @@ import glob
 import cv2
 import numpy as np
 import tensorflow as tf
+from matplotlib import pyplot as plt
 
 from train import create_model, IMAGE_SIZE
 from keras.applications.mobilenetv2 import preprocess_input
