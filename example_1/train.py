@@ -52,12 +52,6 @@ class DataGenerator(Sequence):
 
            self.paths.append(data["imagePath"][3:])
 
-            # Iterating through the json  list
-            xmin = data['shapes'][0]["points"][0][0] 
-            ymin = data['shapes'][0]["points"][0][1] 
-            xmax = data['shapes'][0]["points"][1][0] - data['shapes'][0]["points"][0][0]
-            ymax = data['shapes'][0]["points"][1][1] - data['shapes'][0]["points"][0][1]          
-
             f.close()
 
 
