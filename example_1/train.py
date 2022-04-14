@@ -40,20 +40,23 @@ class DataGenerator(Sequence):
         self.paths = []        
         self.coords = np.zeros( len(annotations_path), 4))      # numpy array of no. of rows * 4 
     
-        for i, filepath in enumerate(os.listdir("annotations/")):
+        for index, json_file in enumerate(annotations_path):
 
-            f = open("annotations/" + str(i) + ".json")
+            f = open(json_file)
             data = json.load(f)
+            
+            self.coords[index, 0] = data['shapes'][0]["points"][0][0]
+            self.coords[index, 1] = data['shapes'][0]["points"][0][1]
+            self.coords[index, 2] = data['shapes'][0]["points"][1][0] - data['shapes'][0]["points"][0][0]
+            self.coords[index, 3] = data['shapes'][0]["points"][1][1] - data['shapes'][0]["points"][0][1]
+
+           self.paths.append(data["imagePath"][3:])
 
             # Iterating through the json  list
             xmin = data['shapes'][0]["points"][0][0] 
             ymin = data['shapes'][0]["points"][0][1] 
-            xmax = data['shapes'][0]["points"][1][0] 
-            ymax = data['shapes'][0]["points"][1][1] 
-
-            img_path = data["imagePath"][3:]
-
-            data_lst.append(((xmin,ymin,xmax,ymax),img_path))      
+            xmax = data['shapes'][0]["points"][1][0] - data['shapes'][0]["points"][0][0]
+            ymax = data['shapes'][0]["points"][1][1] - data['shapes'][0]["points"][0][1]          
 
             f.close()
 
