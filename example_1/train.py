@@ -1,6 +1,10 @@
 import csv
 import math
 
+import os
+import glob
+from pathlib import Path
+
 from PIL import Image
 import numpy as np
 from tensorflow.keras import Model
@@ -29,49 +33,51 @@ VALIDATION_CSV = "validation.csv"
 
 class DataGenerator(Sequence):
     
-    data_lst = []
-
-    for i, filepath in enumerate(os.listdir("annotations/")):
+    def __init__(self, annotations_dir):           #annotations_path :  "annotations/"
+        
+        annotations_path = sorted(list(Path(annotations_dir) .glob('**/*.json')))
+        
+        self.paths = []        
+        self.coords = np.zeros( len(annotations_path), 4))      # numpy array of no. of rows * 4 
     
-        f = open("annotations/" + str(i) + ".json")
-        data = json.load(f)
+        for i, filepath in enumerate(os.listdir("annotations/")):
 
-        # Iterating through the json  list
-        xmin = data['shapes'][0]["points"][0][0] 
-        ymin = data['shapes'][0]["points"][0][1] 
-        xmax = data['shapes'][0]["points"][1][0] 
-        ymax = data['shapes'][0]["points"][1][1] 
+            f = open("annotations/" + str(i) + ".json")
+            data = json.load(f)
 
-        img_path = data["imagePath"][3:]
+            # Iterating through the json  list
+            xmin = data['shapes'][0]["points"][0][0] 
+            ymin = data['shapes'][0]["points"][0][1] 
+            xmax = data['shapes'][0]["points"][1][0] 
+            ymax = data['shapes'][0]["points"][1][1] 
 
-        data_lst.append(((xmin,ymin,xmax,ymax),img_path))      
+            img_path = data["imagePath"][3:]
 
-        f.close()
-    
-    
-    
-    
+            data_lst.append(((xmin,ymin,xmax,ymax),img_path))      
 
-    def __init__(self, csv_file):
-        self.paths = []
+            f.close()
 
-        with open(csv_file, "r") as file:
-            self.coords = np.zeros((sum(1 for line in file), 4))      # numpy array of no. of rows * 4 
-            file.seek(0)
 
-            reader = csv.reader(file, delimiter=",")
-            for index, row in enumerate(reader):                      # index : row number or the image number 
-                for i, item in enumerate(row[1:7]):
-                    row[i+1] = int(item)
+#     def __init__(self, csv_file):
+#         self.paths = []
 
-                path, image_height, image_width, x0, y0, x1, y1, _, _ = row   # get all these for an image number 
+#         with open(csv_file, "r") as file:
+#             self.coords = np.zeros((sum(1 for line in file), 4))      # numpy array of no. of rows * 4 
+#             file.seek(0)
+
+#             reader = csv.reader(file, delimiter=",")
+#             for index, row in enumerate(reader):                      # index : row number or the image number 
+#                 for i, item in enumerate(row[1:7]):
+#                     row[i+1] = int(item)
+
+#                 path, image_height, image_width, x0, y0, x1, y1, _, _ = row   # get all these for an image number 
                 
-                self.coords[index, 0] = x0 * IMAGE_SIZE / image_width
-                self.coords[index, 1] = y0 * IMAGE_SIZE / image_height
-                self.coords[index, 2] = (x1 - x0) * IMAGE_SIZE / image_width
-                self.coords[index, 3] = (y1 - y0) * IMAGE_SIZE / image_height 
+#                 self.coords[index, 0] = x0 * IMAGE_SIZE / image_width
+#                 self.coords[index, 1] = y0 * IMAGE_SIZE / image_height
+#                 self.coords[index, 2] = (x1 - x0) * IMAGE_SIZE / image_width
+#                 self.coords[index, 3] = (y1 - y0) * IMAGE_SIZE / image_height 
 
-                self.paths.append(path)
+#                 self.paths.append(path)
                 
                 
                 
