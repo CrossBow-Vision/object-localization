@@ -10,7 +10,7 @@ import numpy as np
 from tensorflow.keras import Model
 from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2, preprocess_input
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau, Callback
-from tensorflow.keras.layers import Conv2D, Reshape
+from tensorflow.keras.layers import Conv2D, Reshape , Rescaling
 from tensorflow.keras.utils import Sequence
 from tensorflow.keras.backend import epsilon
 
@@ -89,13 +89,13 @@ class DataGenerator(Sequence):
         batch_images = np.zeros((len(batch_paths), IMAGE_SIZE, IMAGE_SIZE, 3), dtype=np.float32)
         for i, f in enumerate(batch_paths):
             img = Image.open(f)
-            batch_images[i] = preprocess_input(np.array(img, dtype=np.float32))
+            batch_images[i] = Rescaling(1./255)(np.array(img, dtype=np.float32))   
             img.close()
 
         return batch_images, batch_coords
     
     
-    
+ 
 
 class Validation(Callback):
     def __init__(self, generator):
