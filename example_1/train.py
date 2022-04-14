@@ -28,6 +28,29 @@ VALIDATION_CSV = "validation.csv"
 
 
 class DataGenerator(Sequence):
+    
+    data_lst = []
+
+    for i, filepath in enumerate(os.listdir("annotations/")):
+    
+        f = open("annotations/" + str(i) + ".json")
+        data = json.load(f)
+
+        # Iterating through the json  list
+        xmin = data['shapes'][0]["points"][0][0] 
+        ymin = data['shapes'][0]["points"][0][1] 
+        xmax = data['shapes'][0]["points"][1][0] 
+        ymax = data['shapes'][0]["points"][1][1] 
+
+        img_path = data["imagePath"][3:]
+
+        data_lst.append(((xmin,ymin,xmax,ymax),img_path))      
+
+        f.close()
+    
+    
+    
+    
 
     def __init__(self, csv_file):
         self.paths = []
@@ -37,17 +60,22 @@ class DataGenerator(Sequence):
             file.seek(0)
 
             reader = csv.reader(file, delimiter=",")
-            for index, row in enumerate(reader):
-                for i, r in enumerate(row[1:7]):
-                    row[i+1] = int(r)
+            for index, row in enumerate(reader):                      # index : row number or the image number 
+                for i, item in enumerate(row[1:7]):
+                    row[i+1] = int(item)
 
-                path, image_height, image_width, x0, y0, x1, y1, _, _ = row
+                path, image_height, image_width, x0, y0, x1, y1, _, _ = row   # get all these for an image number 
+                
                 self.coords[index, 0] = x0 * IMAGE_SIZE / image_width
                 self.coords[index, 1] = y0 * IMAGE_SIZE / image_height
                 self.coords[index, 2] = (x1 - x0) * IMAGE_SIZE / image_width
                 self.coords[index, 3] = (y1 - y0) * IMAGE_SIZE / image_height 
 
                 self.paths.append(path)
+                
+                
+                
+                
 
     def __len__(self):
         return math.ceil(len(self.coords) / BATCH_SIZE)
