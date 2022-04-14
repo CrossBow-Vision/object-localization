@@ -18,22 +18,22 @@ from tensorflow.keras.backend import epsilon
 ALPHA = 1.0
 
 # 96, 128, 160, 192, 224
-IMAGE_SIZE = 96
+IMAGE_SIZE = 224
 
-EPOCHS = 200
-BATCH_SIZE = 32
-PATIENCE = 50
+EPOCHS = 20
+BATCH_SIZE = 5
+PATIENCE = 5
 
 MULTI_PROCESSING = False
 THREADS = 1
 
-TRAIN_CSV = "train.csv"
-VALIDATION_CSV = "validation.csv"
+ANNOT_DIR = "annotations/"
+# VALIDATION_CSV = "validation.csv"
 
 
 class DataGenerator(Sequence):
     
-    def __init__(self, annotations_dir):              # annotations_path :  "annotations/"
+    def __init__(self, annotations_dir):              # annotations_dir :  "annotations/"
         
         annotations_path = sorted(list(Path(annotations_dir) .glob('**/*.json')))        
         self.paths = []        
@@ -54,30 +54,6 @@ class DataGenerator(Sequence):
             f.close()
 
 
-#     def __init__(self, csv_file):
-#         self.paths = []
-
-#         with open(csv_file, "r") as file:
-#             self.coords = np.zeros((sum(1 for line in file), 4))      # numpy array of no. of rows * 4 
-#             file.seek(0)
-
-#             reader = csv.reader(file, delimiter=",")
-#             for index, row in enumerate(reader):                      # index : row number or the image number 
-#                 for i, item in enumerate(row[1:7]):
-#                     row[i+1] = int(item)
-
-#                 path, image_height, image_width, x0, y0, x1, y1, _, _ = row   # get all these for an image number 
-                
-#                 self.coords[index, 0] = x0 * IMAGE_SIZE / image_width
-#                 self.coords[index, 1] = y0 * IMAGE_SIZE / image_height
-#                 self.coords[index, 2] = (x1 - x0) * IMAGE_SIZE / image_width
-#                 self.coords[index, 3] = (y1 - y0) * IMAGE_SIZE / image_height 
-
-#                 self.paths.append(path)
-                
-                
-                
-                
 
     def __len__(self):
         return math.ceil(len(self.coords) / BATCH_SIZE)
@@ -149,22 +125,23 @@ def main():
     model = create_model()
     model.summary()
 
-    train_datagen = DataGenerator(TRAIN_CSV)
-    validation_datagen = Validation(generator=DataGenerator(VALIDATION_CSV))
+    train_datagen = DataGenerator(ANNOT_DIR)
+#     validation_datagen = Validation(generator=DataGenerator(VALIDATION_CSV))
 
     model.compile(loss="mean_squared_error", optimizer="adam", metrics=[])
 
-    checkpoint = ModelCheckpoint("model-{val_iou:.2f}.h5", monitor="val_iou", verbose=1, save_best_only=True,
-                                 save_weights_only=True, mode="max")
-    stop = EarlyStopping(monitor="val_iou", patience=PATIENCE, mode="max")
-    reduce_lr = ReduceLROnPlateau(monitor="val_iou", factor=0.2, patience=10, min_lr=1e-7, verbose=1, mode="max")
+#     checkpoint = ModelCheckpoint("model-{val_iou:.2f}.h5", monitor="val_iou", verbose=1, save_best_only=True,
+#                                  save_weights_only=True, mode="max")
+#     stop = EarlyStopping(monitor="val_iou", patience=PATIENCE, mode="max")
+
+#     reduce_lr = ReduceLROnPlateau(monitor="val_iou", factor=0.2, patience=10, min_lr=1e-7, verbose=1, mode="max")
 
     model.fit_generator(generator=train_datagen,
                         epochs=EPOCHS,
-                        callbacks=[validation_datagen, checkpoint, reduce_lr, stop],
+#                         callbacks=[validation_datagen, checkpoint, reduce_lr, stop],
                         workers=THREADS,
                         use_multiprocessing=MULTI_PROCESSING,
-                        shuffle=True,
+                        shuffle=False,
                         verbose=1)
 
 
