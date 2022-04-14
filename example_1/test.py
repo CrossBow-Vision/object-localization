@@ -7,7 +7,7 @@ from train import create_model, IMAGE_SIZE
 from keras.applications.mobilenetv2 import preprocess_input
 
 WEIGHTS_FILE = "model-0.52.h5"
-IMAGES = "images_resized/*png"
+IMAGES = "images_validation/*png"
 
 def main():
     model = create_model()
@@ -27,9 +27,9 @@ def main():
         y1 = int((region[1] + region[3]) )
 
         cv2.rectangle(unscaled_img, (x0, y0), (x1, y1), (0, 0, 255), 1)
-        cv2.imshow("image", unscaled_img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        plt.imshow("image", unscaled_img)
+        plt.show(
+    
 
 if __name__ == "__main__":
     main()
